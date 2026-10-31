@@ -1,5 +1,6 @@
 \documentclass[11pt]{article}
 
+
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{enumitem}
@@ -32,10 +33,12 @@
 
 \title{Problem Set 4: Parallelism and Memory \\
   \large CS4787/5777 --- Principles of Large-Scale ML Systems}
-\author{Name (NetID) \\ % add group members (up to four) below
-  Name (NetID) \\
-  Name (NetID) \\
-  Name (NetID)}
+\author{
+  Bodong Liu - bl576 \\
+  Boaz Ng - bn229 \\ % add group members (up to four) below
+  Dobbs Conrad - djc478 \\
+  Matthew Jia - mcj57
+  }
 \date{Due November 2, 2026}
 
 \begin{document}
@@ -106,11 +109,38 @@ vii. &  &  \\
 % ============================================================
 \problem{3}{Low-Precision Arithmetic}
 
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Format} & \textbf{Sign} & \textbf{Exponent} & \textbf{Mantissa} & \textbf{Total Bits} \\
+\midrule
+bfloat16      & 1 & 8  & 7  & 16 \\
+IEEE 16       & 1 & 5  & 10 & 16 \\
+MichaelFloat  & 1 & 9  & 6  & 16 \\
+IEEE 32       & 1 & 8  & 23 & 32 \\
+IEEE 64       & 1 & 11 & 52 & 64 \\
+\bottomrule
+\end{tabular}
+\caption{Bit allocation for each floating-point format.}
+\end{table}
+
 \probpart{3(a) Machine epsilon}
-\answer
+
+
+Machine epsilon depends only on the number of mantissa bits $m$. Exponent bits only affect range. Therefore, more mantissa bits means smaller $\varepsilon_{\text{machine}}$, giving the ordering:
+
+\[
+\varepsilon_{\text{MichaelFloat}} > \varepsilon_{\text{bfloat16}} > \varepsilon_{\text{IEEE 16}} > \varepsilon_{\text{IEEE 32}} > \varepsilon_{\text{IEEE 64}}
+\]}
 
 \probpart{3(b) Numerical range}
-\answer
+
+Numerical range is determined by the number of exponent bits $k$, Mantissa bits only change the maximum by a factor less than 2. Therefore, more exponent bits means a larger range, giving the ordering:
+\[
+\text{IEEE 64} > \text{MichaelFloat} > \text{IEEE 32} > \text{bfloat16} > \text{IEEE 16}
+\]
 
 \probpart{3(c) Quantization error}
 \answer
