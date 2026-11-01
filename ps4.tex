@@ -133,16 +133,22 @@ Machine epsilon depends only on the number of mantissa bits $m$. Exponent bits o
 
 \[
 \varepsilon_{\text{MichaelFloat}} > \varepsilon_{\text{bfloat16}} > \varepsilon_{\text{IEEE 16}} > \varepsilon_{\text{IEEE 32}} > \varepsilon_{\text{IEEE 64}}
-\]}
+\]
 
 \probpart{3(b) Numerical range}
 
-Numerical range is determined by the number of exponent bits $k$, Mantissa bits only change the maximum by a factor less than 2. Therefore, more exponent bits means a larger range, giving the ordering:
+Numerical range is determined by the number of exponent bits $k$, since the
+exponent sets how large or small a number can be. Mantissa bits only slightly
+affect the maximum value. Therefore, more exponent bits means a larger range,
+giving the ordering:
 \[
 \text{IEEE 64} > \text{MichaelFloat} > \text{IEEE 32} > \text{bfloat16} > \text{IEEE 16}
 \]
 
 \probpart{3(c) Quantization error}
-\answer
+
+
+
+While MichaelFloat has the fewest mantissa bits and therefore the largest machine epsilon, in terms of ML applications, data is noisy and small rounding errors typically don't matter. What ML can't recover from is a \texttt{NaN} or \texttt{inf}. Overflow produces \texttt{inf}, which quickly leads to \texttt{NaN}s, and these propagate through the model since any computation involving a \texttt{NaN} results in a \texttt{NaN}. Because of this, \fbox{we expect IEEE 16 to cause the worst quantization error} in ML applications: it has only 5 exponent bits, giving a maximum value of about $6.5 \times 10^4$, which common ML computations can exceed. MichaelFloat, by contrast, has 9 exponent bits and more range than even Float32, so overflow is not a concern.
 
 \end{document}
