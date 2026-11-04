@@ -35,7 +35,7 @@
   \large CS4787/5777 --- Principles of Large-Scale ML Systems}
 \author{
   Bodong Liu - bl576 \\
-  Boaz Ng - bn229 \\ % add group members (up to four) below
+  Boaz Ng - bn229 \\ 
   Dobbs Conrad - djc478 \\
   Matthew Jia - mcj57
   }
@@ -48,29 +48,46 @@
 \problem{1}{Parallelism and Parallel Hardware}
 
 \probpart{1(a)}
-\answer
+Amdahl's law with serial proportion $s = 0.03$ on $N$ cores gives
+\[
+S(N) = \frac{1}{s + \frac{1-s}{N}} = \frac{1}{0.03 + \frac{0.97}{N}}.
+\]
+\begin{itemize}
+  \item $N = 8$: \quad $S = \dfrac{1}{0.03 + 0.12125} = \dfrac{1}{0.15125} \approx {6.6}$
+  \item $N = 1024$: \quad $S = \dfrac{1}{0.03 + 0.000947} = \dfrac{1}{0.030947} \approx {32.3}$
+\end{itemize}
 
 \probpart{1(b)}
 \begin{enumerate}[label=(\roman*)]
-  \item \textbf{Antonio.}
-  \item \textbf{Banquo.}
-  \item \textbf{Cordelia.}
-  \item \textbf{Desdemona.}
-  \item \textbf{Edmund.}
-  \item \textbf{Feste.}
-  \item \textbf{Goneril.}
+  \item None. The program is sequential, so using SIMD, multicore, or distributed parallelism would require rewriting it in some way. We can get some speedup from ILP or higher clock speed.
+
+  \item Multicore and distributed. The random search training can be done independently, so we just spread them across the different threads. Depending on the structure of the model being trained, there may be dense linear algebra within each thread where we could use SIMD as well.
+
+  \item None. It's just a single floating point operation, so there's no need to parallelize it.
+
+  \item Multicore or distributed. We can tokenize each document independently, so each thread can get a subset of the documents. SIMD may not be useful because computation is not as dense and uniform for regex matching.
+
+  \item SIMD and multicore. Neural network inference has dense, uniform linear algebra, which we can use SIMD for. Since the work per image is independent, we can use different cores to handle different images. Distributed doesn't make sense because it's just one phone.
+
+  \item SIMD. We're doing dense and predictable vector operations which is the entire point of SIMD. 
+
+  \item All three. The work per document is independent, so we can parallelize across cores or machines (in multicore or distributed) by giving each thread a subset of documents. The SVM's inference is basically just a vector operation (dot product with weight vector), so we can do that quickly using SIMD.
 \end{enumerate}
 
 \probpart{1(c)}
-\answer
+No, this is not possible. The speedup from SIMD is bounded by the number of operations you can do concurrently, and the widest registers on CPUs are 512 bits (compared to 64 bits in a regular register). If we have 32-bit floats, we can hold at most 16 floats at a time, so the max speedup is about 16x. A speedup of 10000x is much higher than this, and likely due to magic.
 
 \probpart{1(d)}
 \begin{enumerate}[label=(\roman*)]
-  \item \textbf{Iago.}
-  \item \textbf{Juliet.}
-  \item \textbf{Kent.}
-  \item \textbf{Lear.}
-  \item \textbf{Miranda.}
+  \item Yes. A matrix-matrix multiply is exactly what GPUs are good at, since it's dense and predictable. We can use \texttt{cublas<t>gemm} to do it in one operation.
+
+  \item No. Compilation includes a bunch of sequential tasks and is not dense or predictable, so it would not be faster by running on GPU.
+
+  \item Yes, since matrix-vector multiplication and vector addition are both easily parallelizable onto GPU. We can do it with one cuBLAS operation \texttt{cublas<t>gemv}, which computes $y = \alpha \cdot \operatorname{op}(A)x + \beta y$.
+
+  \item Yes, in fact GPUs were originally designed for this purpose. Parts of the graphics pipeline (for example, converting coordinates from 3D to 2D which is a matrix multiplication) are easily parallelizable onto GPUs. However, the task is part of a pipeline with many steps, so we can't do it with just one cuBLAS operation.
+
+  \item Yes. For each layer, backpropogation is just multiplying by another matrix. We can't just use one cuBLAS command for the entire task, because we will need to adjust based on what the layer shapes are, and there are steps that may need custom kernels.
 \end{enumerate}
 
 \newpage
